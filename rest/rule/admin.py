@@ -1,24 +1,24 @@
 from os import name
 from django.contrib import admin
-from .models import Rule, Query, Config
+from .models import Rule, Query, Config, Strategy
 import random
 # Register your models here.
 
-@admin.action(description='strategy')
-def strategy(modeladmin, request, queryset):
+# @admin.action(description='strategy')
+# def strategy(modeladmin, request, queryset):
 
-    # queryset.update(flag='strategy')
-    strategy_name = ""
-    for rule in queryset:
-        a = str(rule)
-        strategy_name += f"{a} "    
+#     # queryset.update(flag='strategy')
+#     strategy_name = ""
+#     for rule in queryset:
+#         a = str(rule)
+#         strategy_name += f"{a} "    
     
-    indexname = ""
-    for rule in queryset:
-        a = str(rule)
-        indexname += f"{rule.index_name}, "
+#     indexname = ""
+#     for rule in queryset:
+#         a = str(rule)
+#         indexname += f"{rule.index_name}, "
     
-    rule = Rule.objects.get_value(queryset, name=strategy_name, index_name=indexname, flag='strategy')
+#     rule = Rule.objects.get_value(queryset, name=strategy_name, index_name=indexname, flag='strategy')
     
     # b = rule.create_total(queryset)
     
@@ -59,14 +59,18 @@ class ConfigInline(admin.TabularInline):
 class RuleAdmin(admin.ModelAdmin):
     # class Meta:
     #     model = Rule
-    list_display = ['id', 'name', 'index_name', 'create_time', 'modified_time','total','flag']
-    search_fields = ['name', 'index_name', 'create_time', 'modified_time']
+    list_display = ['id', 'name', 'index_name', 'sequence' ,'create_time', 'modified_time','total', 'index_alias','flag']
+    search_fields = ['name', 'index_name']
     list_display_links = ['name']
     inlines = [
         QueryInline,
         ConfigInline,
         ]
-    actions = [strategy]
+    def save_model(self, request, obj, form, change):
+        # super().save_model(request, obj, form, change)
+        Rule.objects.create(name=obj.name,index_name=obj.index_name, create_time=obj.create_time, modified_time=obj.modified_time)
+        
+    # actions = [strategy]
     
     # def qt(self, request):
     #     rule = Rule.objects.all()
@@ -77,8 +81,13 @@ class QueryAdmin(admin.ModelAdmin):
     list_display = ['id', 'event_category', 'condition',]
     # list_editable = ['sequence']
     search_field = ['event_category', 'condition']
+class StrategyAdmin(admin.ModelAdmin):
+    list_display = ['strategy_name']
+    # list_editable = ['sequence']
+    search_field = ['strategy_name']
 
 
 admin.site.register(Rule, RuleAdmin)
 admin.site.register(Query, QueryAdmin)
+admin.site.register(Strategy, StrategyAdmin)
 # admin.site.register(Query) 

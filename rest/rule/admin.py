@@ -1,6 +1,6 @@
 from os import name
 from django.contrib import admin
-from .models import Rule, Query, Config, Strategy
+from .models import Rule, Query, Config, Strategy#, CustomStrategyManager
 import random
 # Register your models here.
 
@@ -59,34 +59,38 @@ class ConfigInline(admin.TabularInline):
 class RuleAdmin(admin.ModelAdmin):
     # class Meta:
     #     model = Rule
-    list_display = ['id', 'name', 'index_name', 'sequence' ,'create_time', 'modified_time','total', 'index_alias','flag']
+    list_display = ['id', 'name', 'index_name', 'sequence' ,'create_time', 'modified_time','total','flag']
     search_fields = ['name', 'index_name']
     list_display_links = ['name']
     inlines = [
         QueryInline,
         ConfigInline,
         ]
-    def save_model(self, request, obj, form, change):
-        # super().save_model(request, obj, form, change)
-        Rule.objects.create(name=obj.name,index_name=obj.index_name, create_time=obj.create_time, modified_time=obj.modified_time)
-        
+    # def save_model(self, request, obj, form, change):
+    #     # obj.user = request.user
+    #     # super().save_model(request, obj, form, change)
+
+    #     Rule.objects.create(name=obj.name,index_name=obj.index_name, create_time=obj.create_time, modified_time=obj.modified_time)
+        # return rule
     # actions = [strategy]
     
-    # def qt(self, request):
-    #     rule = Rule.objects.all()
-    #     # q = rule.queries.all()
-    #     return q
-
 class QueryAdmin(admin.ModelAdmin):
     list_display = ['id', 'event_category', 'condition',]
     # list_editable = ['sequence']
     search_field = ['event_category', 'condition']
+    
 class StrategyAdmin(admin.ModelAdmin):
-    list_display = ['strategy_name']
+    list_display = ['id', 'strategy_name']
     # list_editable = ['sequence']
     search_field = ['strategy_name']
+    
 
+    # def save_model(self, request, obj, form, change):
+    #     print('form.cleaned_data')
+        # Strategy.objects.create(strategy_name=obj., rules)
+      
 
+        
 admin.site.register(Rule, RuleAdmin)
 admin.site.register(Query, QueryAdmin)
 admin.site.register(Strategy, StrategyAdmin)

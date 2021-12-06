@@ -92,7 +92,7 @@ import time
         
       
 class Rule(models.Model):
-    name = models.CharField(max_length=200, unique=True)
+    name = models.CharField(max_length=200)
     index_name = models.TextField(blank=True, null=True)
     create_time = models.DateTimeField(auto_now_add=True)
     modified_time = models.DateTimeField(auto_now=True)
@@ -108,7 +108,24 @@ class Rule(models.Model):
     # objects = CustomRuleManager()
     # default_manager = CustomRuleManager()
 
+    # def save(self, *args, **kwargs):
+    #     x=""
+    #     queries = self.queries.all()
+    #     # if self.sequence == 'has no conf':
+    #     #     return "has no conf"
+    #     # else:
+    #     if self.sequence == False:
+    #         z = (f"{queries.event_category} where {queries.condition}")
+    #     elif self.sequence == True:
+    #         for i in range (len(queries)):
+    #             c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n  ")
+    #             x +=  c
+    #         z = "sequence\\n " + str(len(queries))
+    #     self.total = z
+            
+    #     super().save(*args, **kwargs)
         
+
     @property
     def index_alias(self):
         indices_name = self.index_name.split(", ")
@@ -140,21 +157,25 @@ class Rule(models.Model):
                 print("ERROR")
         return indices_name
 
+
     @property
-    def total(self):
-        # if self.flag == 'create_rule':
+    def total_property(self):
         x=""
         queries = self.queries.all()
-        # config = self.config.all() ##config.all() nadare
-        if self.sequence == False:
-            z = (f"{queries.event_category} where {queries.condition}")
-        elif self.sequence == True:
-            for i in range (len(queries)):
-                b = "sequence\\n "
-                c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n  ")
-                x = x + c
-            z = b + x 
-        return z   
+        if self.sequence == 'has no conf':
+            return "has no conf"
+        else:
+            if self.sequence == False:
+            # if self.sequence == False:
+                z = (f"{queries.event_category} where {queries.condition}")
+            elif self.sequence == True:
+                for i in range (len(queries)):
+                    # b = "sequence\\n "
+                    c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n  ")
+                    x = x + c
+                z = "sequence\\n " + x 
+
+            return z
 
     #     elif self.flag == 'strategy':
     #         def create_total(self, queryset):
@@ -173,10 +194,13 @@ class Rule(models.Model):
             
     @property
     def sequence(self):
-        if self.config.sequence == False:
-            return False
-        else: 
-            return True
+        try:
+            if self.config.sequence == False:
+                return False
+            else: 
+                return True
+        except:
+            return 'has no conf'    
 
     class Meta:
         verbose_name = 'Rule'
@@ -269,33 +293,8 @@ class Strategy(models.Model):
         return f"{self.strategy_name}"
     
     "**************************************************************"
-    # def create_strategy(sender, instance, created, **kwargs):
-    #     if created:
-    #         Rule.objects.create(rule=instance)
-    #         print("strategy created!")
-    # post_save.connect(create_strategy, sender=Strategy)
-    # def update_strategy(sender, instance, created, **kwargs):
-    #     if created == False:
-    #         pass    
-    
-    
-    
-    
-    
     # def save(self, *args, **kwargs):
     #     super(Strategy,self).save(*args, **kwargs)
-    # @property
-    # def ww(self):
-    #     strategy = Strategy.objects.get(id=self.id)
-        # w = strategy.rules.all()
-        # print("@@@@@@@@@@@@@@@@@@@@@@",strategy)
-        # print("@@@@@@@@@@@@@@@@@@@self.rules.all(): ",w)
-        # print("@@@@@@@@@@@@@@@@@@@@@@",self.strategy_name)
-        
-        
-
-        # Rule.objects.create(name=self.strategy_name, index_name=str(self.index_alias()))
-        # strategy = Strategy.objects.get(id=self.id)
 
     
     # def index_alias(self):
@@ -317,12 +316,6 @@ class Strategy(models.Model):
     #     return "ww"
 
     
-    
-        
-        
-        
-    
-        
 
 
 

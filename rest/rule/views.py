@@ -8,37 +8,49 @@ from rest_framework import HTTP_HEADER_ENCODING, generics
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
-from .models import Rule, Query, Config
+from .models import Rule, Query, Config, Strategy
 from .serializers import RuleSerializer
 
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 import yaml
 
-def rule_yaml(request):
-    res = response.HttpResponse(content_type='text/yaml')
-    res['Content-Disposition'] = 'attachment; filename = rule.yaml'
-    rules = Rule.objects.all()
+
+def test(request, id):
+    strategy = Strategy.objects.get(id=id)
+    rules = strategy.rules.all()
+    # rule = request.rules
+    # f = strategy_id.rules.add(rule)
+    print(rules)
+    # print(rule)
+    # print(f)
+    return response.HttpResponse("fff")
+
+
+# def rule_yaml(request):
+#     res = response.HttpResponse(content_type='text/yaml')
+#     res['Content-Disposition'] = 'attachment; filename = rule.yaml'
+#     rules = Rule.objects.all()
     
-    lines = []
-    for rule in rules:
+#     lines = []
+#     for rule in rules:
         
-        lines.append(f"{rule.name}\n{rule.index_name}\n{rule.total}\n{rule.sequence}\n{rule.create_time}\n{rule.modified_time}\n\n\n")
+#         lines.append(f"{rule.name}\n{rule.index_name}\n{rule.total}\n{rule.sequence}\n{rule.create_time}\n{rule.modified_time}\n\n\n")
         
-        # for i in range(len(rules)):
-        #     with open(f"rulefile{i}.yaml", "w") as file:
-        #         document = yaml.dump(rule, file)
+#         # for i in range(len(rules)):
+#         #     with open(f"rulefile{i}.yaml", "w") as file:
+#         #         document = yaml.dump(rule, file)
                 
 
-    res.writelines(lines)
-    # print("########lenrule: ", len(rules))
-    print("########res: ", res)
+#     res.writelines(lines)
+#     # print("########lenrule: ", len(rules))
+#     print("########res: ", res)
 
 
 
 
-    # return response.HttpResponse("OK")
-    return res
+#     # return response.HttpResponse("OK")
+#     return res
 
 
 

@@ -1,7 +1,7 @@
 from os import name
 from django.contrib import admin
 from .models import Rule, Query, Config, Strategy#, CustomStrategyManager
-import random
+
 # Register your models here.
 
 # @admin.action(description='strategy')
@@ -59,7 +59,7 @@ class ConfigInline(admin.TabularInline):
 class RuleAdmin(admin.ModelAdmin):
     # class Meta:
     #     model = Rule
-    list_display = ['id', 'name', 'index_name', 'sequence' ,'create_time', 'modified_time','total','flag']
+    list_display = ['id', 'name', 'index_name', 'sequence' ,'flag','create_time', 'modified_time','total', 'total_property']
     search_fields = ['name', 'index_name']
     list_display_links = ['name']
     inlines = [
@@ -82,6 +82,7 @@ class QueryAdmin(admin.ModelAdmin):
 class StrategyAdmin(admin.ModelAdmin):
     list_display = ['id', 'strategy_name']
     # list_editable = ['sequence']
+    list_display_links = ['strategy_name']
     search_field = ['strategy_name']
     
 

@@ -2,7 +2,7 @@ from typing import Sequence
 from django.db import router
 from django.urls import path
 from django.urls.conf import include
-from .views import query_total, rule_yaml
+from .views import query_total, test
 # , query_total_detail, get_rule_id #RuleList
 # , rule_list, rule_detail, rule_save, rule_update, rule_delete
 
@@ -32,7 +32,8 @@ urlpatterns = [
 
 
     path("query/", query_total),
-    path("yaml/", rule_yaml),
+    path("test/<id>", test),
+    # path("yaml/", rule_yaml),
     # path("detail/<int:pk>/", query_total_detail),
     # path("get_rule_id/<int:pk>/", get_rule_id),
     

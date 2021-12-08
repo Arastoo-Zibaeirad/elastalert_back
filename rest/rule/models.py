@@ -105,25 +105,42 @@ class Rule(models.Model):
     )
     flag = models.CharField(max_length=250, blank=True, null=True, choices=flag_fields, default=CREATE_RULE)
     total = models.TextField(blank=True, null=True)
+    # DisplayFields = ['id', 'name', 'index_name', 'sequence' ,'flag','create_time', 'modified_time','total', 'total_property']
+
     # objects = CustomRuleManager()
     # default_manager = CustomRuleManager()
 
     # def save(self, *args, **kwargs):
-    #     x=""
-    #     queries = self.queries.all()
-    #     # if self.sequence == 'has no conf':
-    #     #     return "has no conf"
-    #     # else:
-    #     if self.sequence == False:
-    #         z = (f"{queries.event_category} where {queries.condition}")
-    #     elif self.sequence == True:
-    #         for i in range (len(queries)):
-    #             c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n  ")
-    #             x +=  c
-    #         z = "sequence\\n " + str(len(queries))
-    #     self.total = z
+        # x=""
+        # queries = self.queries.all()
+        # if self.sequence == 'has no conf':
+        #     return "has no conf"
+        # else:
+        #     if self.sequence == False:
+        #         z = (f"{queries.event_category} where {queries.condition}")
+        #     elif self.sequence == True:
+        #         for i in range (len(queries)):
+        #             print(i)
+        #             c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n  ")
+        #             x +=  c
+        #         z = "sequence\\n " + x
+        #     self.total = queries
             
-    #     super().save(*args, **kwargs)
+          # super().save(*args, **kwargs)   
+            
+            
+        # if self.flag == 'create_rule':
+        #     if self.sequence == False:
+        #         z = (f"{queries.event_category} where {queries.condition}")
+        #         self.total = z
+        #     elif self.sequence == True:
+        #         for i in range (len(queries)):
+        #             c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n  ")
+        #             x +=  c
+        #         z = "sequence\\n " + x
+        #         self.total = z
+            
+
         
 
     @property
@@ -158,15 +175,13 @@ class Rule(models.Model):
         return indices_name
 
 
-    @property
-    def total_property(self):
+    def total_method(self):
         x=""
         queries = self.queries.all()
         if self.sequence == 'has no conf':
             return "has no conf"
         else:
             if self.sequence == False:
-            # if self.sequence == False:
                 z = (f"{queries.event_category} where {queries.condition}")
             elif self.sequence == True:
                 for i in range (len(queries)):
@@ -174,8 +189,15 @@ class Rule(models.Model):
                     c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n  ")
                     x = x + c
                 z = "sequence\\n " + x 
+        self.total = z
+        self.save()
 
-            return z
+        return z
+
+        
+    # @total_property.setter
+    # def total_property(self, value):
+    #     self.totalproperty = value
 
     #     elif self.flag == 'strategy':
     #         def create_total(self, queryset):
@@ -197,8 +219,11 @@ class Rule(models.Model):
         try:
             if self.config.sequence == False:
                 return False
-            else: 
+            elif self.flag == 'strategy':
                 return True
+            else:
+                return True
+            
         except:
             return 'has no conf'    
 

@@ -11,9 +11,10 @@ class RuleSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Rule
-        fields = "__all__"
+        
         # depth = 1
         # fields = ['name', 'index_name', 'query']
+        # fields = "__all__"
 
 
 # class QuerySerializer(serializers.ModelSerializer):

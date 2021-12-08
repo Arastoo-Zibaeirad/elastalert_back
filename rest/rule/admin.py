@@ -59,13 +59,16 @@ class ConfigInline(admin.TabularInline):
 class RuleAdmin(admin.ModelAdmin):
     # class Meta:
     #     model = Rule
-    list_display = ['id', 'name', 'index_name', 'sequence' ,'flag','create_time', 'modified_time','total', 'total_property']
+    list_display = ['id', 'name', 'index_name', 'sequence' ,'flag','create_time', 'modified_time', 'total_method']
     search_fields = ['name', 'index_name']
     list_display_links = ['name']
     inlines = [
         QueryInline,
         ConfigInline,
         ]
+    def total_method(self,instance):
+        a = instance.total_method()
+        return instance.total
     # def save_model(self, request, obj, form, change):
     #     # obj.user = request.user
     #     # super().save_model(request, obj, form, change)

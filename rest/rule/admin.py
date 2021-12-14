@@ -1,6 +1,6 @@
 from os import name
 from django.contrib import admin
-from .models import Rule, Query, Config, Strategy#, CustomStrategyManager
+from .models import Rule, Query, Config, Strategy, Order#, CustomStrategyManager
 
 # Register your models here.
 
@@ -45,9 +45,14 @@ from .models import Rule, Query, Config, Strategy#, CustomStrategyManager
     # print("##########", queryset)
     # print("##########", request)
     # Rule.objects.create(name='test_strategy',index_name = 'test_index')
+    
+    
+ 
 
 
-
+class StrategyInline(admin.TabularInline):
+    model = Strategy
+    extra = 1
 
 class QueryInline(admin.TabularInline):
     model = Query
@@ -55,20 +60,32 @@ class QueryInline(admin.TabularInline):
 
 class ConfigInline(admin.TabularInline):
     model = Config
+    
+class StrategyInline(admin.TabularInline):
+    model = Strategy.rules.through
+    extra = 1
+class OrderInline(admin.StackedInline):
+    model = Order
+    extra = 1
+    # readonly_fields = ['get_author_name']
+    # def get_author_name(self, st):
+    #     return st.strategy
 
 class RuleAdmin(admin.ModelAdmin):
     # class Meta:
     #     model = Rule
-    list_display = ['id', 'name', 'index_name', 'sequence' ,'flag','create_time', 'modified_time', 'total_method']
+    list_display = ['id', 'name', 'index_name', 'sequence','create_time', 'modified_time', 'total', 'total_method']
     search_fields = ['name', 'index_name']
     list_display_links = ['name']
     inlines = [
         QueryInline,
         ConfigInline,
+        
+        
         ]
-    def total_method(self,instance):
-        a = instance.total_method()
-        return instance.total
+    # def total_method(self,instance):
+    #     a = instance.total_method()
+    #     return instance.total
     # def save_model(self, request, obj, form, change):
     #     # obj.user = request.user
     #     # super().save_model(request, obj, form, change)
@@ -82,11 +99,28 @@ class QueryAdmin(admin.ModelAdmin):
     # list_editable = ['sequence']
     search_field = ['event_category', 'condition']
     
+
+
 class StrategyAdmin(admin.ModelAdmin):
-    list_display = ['id', 'strategy_name']
+
+    # strategy = Strategy.objects.get(id=25)
+    # y, z = strategy.final()
+    # def ff(self):
+    #     return self.z
+        
+    # print(y,z)
+    list_display = ['id', 'strategy_name', 'strategy_index','final_query', 'strategy_index']
     # list_editable = ['sequence']
     list_display_links = ['strategy_name']
     search_field = ['strategy_name']
+    inlines = [
+        StrategyInline,
+        
+        
+        ]
+    # ordering = ('order',)
+    exclude = ('rules',)
+    
     
 
     # def save_model(self, request, obj, form, change):
@@ -98,4 +132,5 @@ class StrategyAdmin(admin.ModelAdmin):
 admin.site.register(Rule, RuleAdmin)
 admin.site.register(Query, QueryAdmin)
 admin.site.register(Strategy, StrategyAdmin)
+admin.site.register(Order)
 # admin.site.register(Query) 

@@ -108,42 +108,42 @@ def create_yaml(sender, instance, created, **kwargs):
     #     print("no")
 
 
-@receiver(m2m_changed, sender=Strategy.rules.through)
-def create_rule(sender, instance, **kwargs):
-    """
-    create a rule when an object from Strategy is created.
-    """   
-    rules = instance.rules.all()
-    if len(rules) != 0:
-        y = ""
-        indices = []
-        for rule in rules:
-            index = rule.index_name
-            indices.append(index)
-            queries = rule.queries.all()   
-            x = ""
-            for i in range (len(queries)):
-                c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n ")
-                x +=  c
-            y += x
-        z = "sequence\\n " + y
-        url = 'http://192.168.250.123:9200/_aliases?pretty'
-        headers = {
-        'Content-Type': 'application/json'
-        }
-        alias_name = f"Strategy_alias{random.random()}"
-        data = '{"actions" : [ { "add" : { "indices" : %s, "alias" : "%s" } } ]}'%(json.dumps(indices), alias_name)
-        try:
-            res1 = requests.post(url, headers=headers, data=data)
-            res = res1.json()
-        except:
-            print("ERROR")
-        a = Rule.objects.create(name=instance.strategy_name, index_name=alias_name, total=z, flag='strategy')
+# @receiver(m2m_changed, sender=Strategy.rules.through)
+# def create_rule(sender, instance, **kwargs):
+#     """
+#     create a rule when an object from Strategy is created.
+#     """   
+#     rules = instance.rules.all()
+#     if len(rules) != 0:
+#         y = ""
+#         indices = []
+#         for rule in rules:
+#             index = rule.index_name
+#             indices.append(index)
+#             queries = rule.queries.all()   
+#             x = ""
+#             for i in range (len(queries)):
+#                 c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n ")
+#                 x +=  c
+#             y += x
+#         z = "sequence\\n " + y
+#         url = 'http://192.168.250.123:9200/_aliases?pretty'
+#         headers = {
+#         'Content-Type': 'application/json'
+#         }
+#         alias_name = f"Strategy_alias{random.random()}"
+#         data = '{"actions" : [ { "add" : { "indices" : %s, "alias" : "%s" } } ]}'%(json.dumps(indices), alias_name)
+#         try:
+#             res1 = requests.post(url, headers=headers, data=data)
+#             res = res1.json()
+#         except:
+#             print("ERROR")
+#         a = Rule.objects.create(name=instance.strategy_name, index_name=alias_name, total=z, flag='strategy')
 
-        a.total=z
-        return z    
-    else:
-        pass
+#         a.total=z
+#         return z    
+#     else:
+#         pass
     
         
  

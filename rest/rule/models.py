@@ -6,6 +6,7 @@ import json
 import yaml
 from django.core.files.base import ContentFile, File
 import time
+from elasticsearch import Elasticsearch
 # from django.db.models.signals import post_save
 
 # class StrategyManager(models.Manager):
@@ -89,8 +90,6 @@ import time
 #         rule.save()
 #         return rule
         
-        
-      
 class Rule(models.Model):
     name = models.CharField(max_length=200)
     index_name = models.TextField(blank=True, null=True)
@@ -139,10 +138,7 @@ class Rule(models.Model):
         #             x +=  c
         #         z = "sequence\\n " + x
         #         self.total = z
-            
-
         
-
     @property
     def index_alias(self):
         indices_name = self.index_name.split(", ")
@@ -174,9 +170,8 @@ class Rule(models.Model):
                 print("ERROR")
         return indices_name
 
-
     def total_method(self):
-        x=""
+        
         queries = self.queries.all()
         if self.sequence == 'has no conf':
             return "has no conf"
@@ -184,35 +179,18 @@ class Rule(models.Model):
             if self.sequence == False:
                 z = (f"{queries.event_category} where {queries.condition}")
             elif self.sequence == True:
+                x=""
                 for i in range (len(queries)):
                     # b = "sequence\\n "
-                    c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n  ")
-                    x = x + c
+                    c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n ")
+                    x += c
+                
                 z = "sequence\\n " + x 
         self.total = z
         self.save()
 
-        return z
-
-        
-    # @total_property.setter
-    # def total_property(self, value):
-    #     self.totalproperty = value
-
-    #     elif self.flag == 'strategy':
-    #         def create_total(self, queryset):
-    #             print("AAAAAAAA", queryset)
-    #             return f'{queryset}^^^^'
-            # strategy_name = ""
-            # for rule in queryset:
-            #     a = str(rule)
-            #     strategy_name += f"{a} "            
-            # rule = Rule.objects.create(name=strategy_name, index_name='pp', flag='strategy')
-            
-            
-    # def create_total(self,queryset):
-    #     return f'{queryset}       -----------------------------'       
-                
+        return x, z
+  
             
     @property
     def sequence(self):
@@ -283,14 +261,13 @@ class Query(models.Model):
     modified_time = models.DateTimeField(auto_now=True)
     # default_manager = QueryManager()
     # objects = QueryManager()
-    
+
     class Meta:
         verbose_name = 'Query'
         verbose_name_plural = 'Queries'
 
     def __str__(self):
         return f"{self.rule}"  
-
        
 class Config(models.Model):
     rule = models.OneToOneField(Rule, on_delete=models.CASCADE, related_name='config')
@@ -303,9 +280,8 @@ class Config(models.Model):
         return f"{self.rule}"
     
 class Strategy(models.Model):
-    rules = models.ManyToManyField(Rule)
+    rules = models.ManyToManyField(Rule, related_name='strategies', through='Order')
     strategy_name = models.CharField(max_length=100)
-    
     # objects = CustomStrategyManager()
     # default_manager = models.Manager()
     
@@ -314,65 +290,97 @@ class Strategy(models.Model):
         verbose_name_plural = 'Strategies'
         # unique_together = [['rules']]
     
+    
     def __str__(self):
         return f"{self.strategy_name}"
-    
     "**************************************************************"
-    # def save(self, *args, **kwargs):
-    #     super(Strategy,self).save(*args, **kwargs)
+    # def total_method_strategy(self):
+    #     rules = self.rules.all()
+    #     if len(rules) != 0:
+    #         y = ""
+    #         for rule in rules:
+    #             queries = rule.queries.all()   
+    #             x = ""
+    #             for i in range (len(queries)):
+    #                 c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n ")
+    #                 x +=  c
+    #             y += x
+    #         z = "sequence\\n " + y
+        # return (z,y)
+        
+    def final_query(self):
+        strategies = self.stra.all()
+        rules = self.rules.all()
+        # for j in range(len(strategies)):
+        x = ""
+        for obj in strategies:
+            '##########################This is for rule##########################'
+            if obj.add_from_another_strategy == False:
+                r = obj.rule
+                q = r.total_method()[0]
+                x += q
+                '##########################This is for strategy##########################'
+            if obj.add_from_another_strategy == True:
+                for get_each_strategy in obj.add_strategy.all():
+                    for rule_of_each_strategy in get_each_strategy.rules.all():
+                        before_final_query = rule_of_each_strategy.total_method()[0]
+                        x += before_final_query
 
+        final_query = f"sequence\\n {x}"
+        return final_query
     
-    # def index_alias(self):
-    #     "------------------------------------------------------------------------------------"
-    #     # strategy = Strategy.objects.all()[]
-    #     strategy = Strategy.objects.get(id=self.id)
-    #     w = strategy.rules.all()
-    #     # strategy = Strategy.objects.get(id=self.id)
-        
-    #     # objects = strategy.rules.all()
-    #     # w = strategy.rules.all()
-    #     # rule = Rule.objects.first()
-    #     # strategies = rule.strategy_set.all()
-    #     print("@@@@@@@@@@@@@@@@@@@@@@",strategy)
-    #     print("@@@@@@@@@@@@@@@@@@@@@@",w)
-        
-    #     # Rule.objects.create(name=self.strategy_name, index_name="s")
-        
-    #     return "ww"
-
     
+    
+    def strategy_index(self):
+        strategies = self.stra.all()
+        rules = self.rules.all()
+        strategy_indx_name_list = []
+        for obj in strategies:
+            if obj.add_from_another_strategy == False:
+                r = obj.rule
+                i = r.index_name
+                strategy_indx_name_list.append(i)
+            if obj.add_from_another_strategy == True:
+                for get_each_strategy in obj.add_strategy.all():
+                    for rule_of_each_strategy in get_each_strategy.rules.all():
+                        i_name = rule_of_each_strategy.index_name
+                        strategy_indx_name_list.append(i_name)
 
+        """the indices list has unquie items"""
+        indices = []
+        for x in strategy_indx_name_list:
+            if x not in indices:
+                indices.append(x)
+        print(indices)
+        es = Elasticsearch(['192.168.250.123'],)
+        
+        if len(indices) >= 1:
+            url = 'http://192.168.250.123:9200/_aliases?pretty'
+            headers = {
+            'Content-Type': 'application/json'
+            }
+            alias_name = f"Strategy_alias{random.random()}"
+            data = '{"actions" : [ { "add" : { "indices" : %s, "alias" : "%s" } } ]}'%(json.dumps(indices), alias_name)
 
+            try:
+                alias = es.indices.get_alias(f"{alias_name}")
+                alias = "Exist"
+                
+            except:
+                alias = "Not Exist"
+                
+            if alias == "Exist":
+                indices = alias_name
+            else:
+                res1 = requests.post(url, headers=headers, data=data)
+                res = res1.json()
+                indices = alias_name
 
-        # strategy = Strategy.objects.get(id=self.id)
-        # name = strategy.strategy_name
-        # rules = Rule.objects.filter(name=name)
-        # print(rules)
-        # return 'nafb'
-        # strategy_rules = strategy.rules.all()
-        # print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",strategy_rules)
-        # index = []
-        # for rule in strategy_rules:
-        #     index.append(rule.index_name)
-        # print(index)    
-        # return 'test'
-        # if len(index) >= 2:
-        #     print(len(index))
-        #     print("you should define an alias")
-        #     url = 'http://192.168.250.123:9200/_aliases?pretty'
-        #     headers = {
-        #     'Content-Type': 'application/json'
-        #     }
-        #     alias_name = f"alias{random.random()}"
-        #     data = '{"actions" : [ { "add" : { "indices" : %s, "alias" : "%s" } } ]}'%(json.dumps(index), alias_name)
-        #     print(data)
-        #     try:
-        #         res1 = requests.post(url, headers=headers, data=data)
-        #         res = res1.json()
-        #         print("RESPONSE: ",res)
-        #         print("alias_name: ",alias_name)
-                         
-        #     except:
-        #         print("ERROR")
-        # return 'rr'
-            
+            return indices
+
+class Order(models.Model):
+    strategy = models.ForeignKey(Strategy, on_delete=models.CASCADE, related_name='stra')
+    order = models.AutoField(primary_key=True)
+    rule = models.ForeignKey(Rule, on_delete=models.CASCADE, blank=True, null=True)
+    add_from_another_strategy = models.BooleanField(default=False)
+    add_strategy = models.ManyToManyField(Strategy, blank=True)

@@ -190,7 +190,8 @@ class Rule(models.Model):
         self.save()
 
         return x, z
-  
+    
+
             
     @property
     def sequence(self):
@@ -201,7 +202,6 @@ class Rule(models.Model):
                 return True
             else:
                 return True
-            
         except:
             return 'has no conf'    
 
@@ -282,6 +282,11 @@ class Config(models.Model):
 class Strategy(models.Model):
     rules = models.ManyToManyField(Rule, related_name='strategies', through='Order')
     strategy_name = models.CharField(max_length=100)
+    create_time = models.DateTimeField(auto_now_add=True)
+    modified_time = models.DateTimeField(auto_now=True)
+    strategy_alias = models.TextField(blank=True, null=True)
+    strategy_total = models.TextField(blank=True, null=True)
+
     # objects = CustomStrategyManager()
     # default_manager = models.Manager()
     
@@ -311,6 +316,7 @@ class Strategy(models.Model):
     def final_query(self):
         strategies = self.stra.all()
         rules = self.rules.all()
+        
         # for j in range(len(strategies)):
         x = ""
         for obj in strategies:
@@ -327,9 +333,9 @@ class Strategy(models.Model):
                         x += before_final_query
 
         final_query = f"sequence\\n {x}"
+        self.strategy_total = final_query
+        self.save()
         return final_query
-    
-    
     
     def strategy_index(self):
         strategies = self.stra.all()
@@ -345,13 +351,16 @@ class Strategy(models.Model):
                     for rule_of_each_strategy in get_each_strategy.rules.all():
                         i_name = rule_of_each_strategy.index_name
                         strategy_indx_name_list.append(i_name)
-
-        """the indices list has unquie items"""
+        print("strategy_indx_name_list: ", strategy_indx_name_list)
+        """the indices list has unique items"""
         indices = []
         for x in strategy_indx_name_list:
             if x not in indices:
                 indices.append(x)
-        print(indices)
+        indices.sort()
+        collect_index_name = ""
+        for i in indices:
+            collect_index_name += i
         es = Elasticsearch(['192.168.250.123'],)
         
         if len(indices) >= 1:
@@ -359,7 +368,7 @@ class Strategy(models.Model):
             headers = {
             'Content-Type': 'application/json'
             }
-            alias_name = f"Strategy_alias{random.random()}"
+            alias_name = f"Strategy_alias({collect_index_name})"
             data = '{"actions" : [ { "add" : { "indices" : %s, "alias" : "%s" } } ]}'%(json.dumps(indices), alias_name)
 
             try:
@@ -375,7 +384,9 @@ class Strategy(models.Model):
                 res1 = requests.post(url, headers=headers, data=data)
                 res = res1.json()
                 indices = alias_name
-
+                
+            self.strategy_alias = indices
+            self.save()
             return indices
 
 class Order(models.Model):

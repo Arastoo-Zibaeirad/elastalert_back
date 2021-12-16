@@ -43,7 +43,7 @@ def create_yaml(sender, instance, created, **kwargs):
                         {'name': \" %s \"},
                         {'index': "%s"},
                         {'type': "any"},
-                        {'query': [{'query': %s}]}]"""%(instance.create_time, instance.modified_time, instance.name, instance.index_name, instance.total_method())
+                        {'query': [{'query': %s}]}]"""%(instance.create_time, instance.modified_time, instance.name, instance.index_name, instance.total_method()[1])
                 
         dict_file = yaml.safe_load(dict_file)          
         with open(f'{instance.name}.yaml', 'w') as file:
@@ -145,5 +145,22 @@ def create_yaml(sender, instance, created, **kwargs):
 #     else:
 #         pass
     
+# @receiver(post_save, sender=Order)
+# def create_yaml(sender, instance, created, **kwargs):
+#     """
+#     after creating an object in strategy, we want to create a yaml file 
+#     """
+#     if created:
+#         dict_file = """[{'ANPdata' : ['creation_date = %s', 'maturity = production', 'updated_date = %s']},
+#                         {'ANPrule' : [{'author': ["Elastic"]}, {'language': "eql"}, {'rule_id': "55"}, {'threat': 'ghgf'}]},
+#                         {'name': \" %s \"},
+#                         {'index': "%s"},
+#                         {'type': "any"},
+#                         {'query': [{'query': %s}]}]"""%(instance.create_time, instance.modified_time, instance.name, instance.index_name, instance.total_method())
+                
+#         dict_file = yaml.safe_load(dict_file)          
+#         with open(f'{instance.name}.yaml', 'w') as file:
+#             yaml.dump(dict_file, file)
+
         
  

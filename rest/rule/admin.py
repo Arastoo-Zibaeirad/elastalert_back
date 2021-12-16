@@ -109,7 +109,7 @@ class StrategyAdmin(admin.ModelAdmin):
     #     return self.z
         
     # print(y,z)
-    list_display = ['id', 'strategy_name', 'strategy_index','final_query', 'strategy_index']
+    list_display = ['id', 'strategy_name', 'strategy_index','create_time','modified_time','final_query']
     # list_editable = ['sequence']
     list_display_links = ['strategy_name']
     search_field = ['strategy_name']

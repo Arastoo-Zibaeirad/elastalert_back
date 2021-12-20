@@ -81,7 +81,6 @@ class RuleAdmin(admin.ModelAdmin):
         QueryInline,
         ConfigInline,
         
-        
         ]
     # def total_method(self,instance):
     #     a = instance.total_method()
@@ -99,7 +98,6 @@ class QueryAdmin(admin.ModelAdmin):
     # list_editable = ['sequence']
     search_field = ['event_category', 'condition']
     
-
 
 class StrategyAdmin(admin.ModelAdmin):
 
@@ -120,15 +118,11 @@ class StrategyAdmin(admin.ModelAdmin):
         ]
     # ordering = ('order',)
     exclude = ('rules',)
-    
-    
 
     # def save_model(self, request, obj, form, change):
     #     print('form.cleaned_data')
         # Strategy.objects.create(strategy_name=obj., rules)
-      
 
-        
 admin.site.register(Rule, RuleAdmin)
 admin.site.register(Query, QueryAdmin)
 admin.site.register(Strategy, StrategyAdmin)

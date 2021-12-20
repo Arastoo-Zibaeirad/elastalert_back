@@ -188,7 +188,6 @@ class Rule(models.Model):
                 z = "sequence\\n " + x 
         self.total = z
         self.save()
-
         return x, z
     
 
@@ -211,7 +210,7 @@ class Rule(models.Model):
 
     def __str__(self):
         return f"{self.name}"
-    
+
 
 class Query(models.Model):
     rule = models.ForeignKey(Rule, on_delete=models.CASCADE, related_name='queries')
@@ -286,7 +285,6 @@ class Strategy(models.Model):
     modified_time = models.DateTimeField(auto_now=True)
     strategy_alias = models.TextField(blank=True, null=True)
     strategy_total = models.TextField(blank=True, null=True)
-
     # objects = CustomStrategyManager()
     # default_manager = models.Manager()
     
@@ -294,7 +292,6 @@ class Strategy(models.Model):
         verbose_name = 'Strategy'
         verbose_name_plural = 'Strategies'
         # unique_together = [['rules']]
-    
     
     def __str__(self):
         return f"{self.strategy_name}"

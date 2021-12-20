@@ -5,141 +5,141 @@ from django.db.models.query import QuerySet
 from django.http import response
 from django.shortcuts import render
 from rest_framework import HTTP_HEADER_ENCODING, generics
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
-from .models import Rule, Query, Config, Strategy
-from .serializers import RuleSerializer
-
+from .models import Rule, Query, Config, Strategy, Order
 from rest_framework import viewsets
-from django.shortcuts import get_object_or_404
-import yaml
 
 
-def test(request, id):
-    strategy = Strategy.objects.get(id=id)
-    rules = strategy.rules.all()
-    # rule = request.rules
-    # f = strategy_id.rules.add(rule)
-    print(rules)
-    # print(rule)
-    # print(f)
-    return response.HttpResponse("fff")
+
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveAPIView
+from django.views.generic import ListView, DetailView
+from .serializers import RuleSerializer, UserSerializer, QuerySerializer, ConfigSerializer, StrategySerializer, OrderSerializer
+from django.contrib.auth import get_user_model
+from rest_framework.permissions import IsAdminUser
+from rest_framework.viewsets import ModelViewSet
+from rest_framework import routers
+from django_filters.rest_framework import DjangoFilterBackend 
+
+class UserViewSet(ModelViewSet):
+    queryset = get_user_model().objects.all()
+    serializer_class = UserSerializer
+
+class RuleViewSet(ModelViewSet):
+    queryset = Rule.objects.all()
+    serializer_class = RuleSerializer
+    filterset_fields= ['name', 'index_name']
+    search_fields = ['name', 'index_name', 'total']
+    ordering_fields = ['id']
+    # ['name', 'index_name', 'rule__queries']
+    # def get_queryset(self):
+    #     queryset = Rule.objects.all()
+        
+    #     index_name = self.request.query_params.get('index_name')
+    #     if index_name is not None:
+    #         queryset = queryset.filter(index_name=index_name) 
+        
+    #     name = self.request.query_params.get('name')
+    #     if name is not None:
+    #         queryset = queryset.filter(name=name)
+    #     return queryset
+
+    def get_permissions(self):
+        if self.action in ['list', 'create']:
+            permission_classes = [IsAdminUser]
+        else: 
+            permission_classes = [IsAdminUser]
+        return [permission() for permission in permission_classes]
+
+class QueryViewSet(ModelViewSet):
+    queryset = Query.objects.all()
+    serializer_class = QuerySerializer
+
+class ConfigViewSet(ModelViewSet):
+    queryset = Query.objects.all()
+    serializer_class = ConfigSerializer
+
+class StrategyViewSet(ModelViewSet):
+    queryset = Strategy.objects.all()
+    serializer_class = StrategySerializer
+
+class OrderViewSet(ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
 
 
-# def rule_yaml(request):
-#     res = response.HttpResponse(content_type='text/yaml')
-#     res['Content-Disposition'] = 'attachment; filename = rule.yaml'
-#     rules = Rule.objects.all()
+
+
+
+
+
+
+
+
+
+
+
+
+###apiview
+# class RuleList(ListCreateAPIView):
+#     queryset = Rule.objects.all()
+#     serializer_class = RuleSerializer
     
-#     lines = []
-#     for rule in rules:
-        
-#         lines.append(f"{rule.name}\n{rule.index_name}\n{rule.total}\n{rule.sequence}\n{rule.create_time}\n{rule.modified_time}\n\n\n")
-        
-#         # for i in range(len(rules)):
-#         #     with open(f"rulefile{i}.yaml", "w") as file:
-#         #         document = yaml.dump(rule, file)
-                
+# class RuleDetail(RetrieveAPIView):
+#     queryset = Rule.objects.all()
+#     serializer_class = RuleSerializer
 
-#     res.writelines(lines)
-#     # print("########lenrule: ", len(rules))
-#     print("########res: ", res)
+# class UserList(ListCreateAPIView):
+#     queryset = User.objects.all()
+#     serializer_class = UserSerializer
+#     """just admin users can see UerList"""
+#     permission_classes = (IsAdminUser,)
+# class UserDetail(RetrieveAPIView):
+#     queryset = User.objects.all()
+#     serializer_class = UserSerializer
+#     permission_classes = (IsAdminUser,)
 
+    
+    
+    
 
-
-
-#     # return response.HttpResponse("OK")
-#     return res
-
-
-
-
-
-
-
-def query_total(request):
-    try:
-        
-        rule = Rule.objects.get(id=3)
-        queries = rule.queries.all()
-        print("1: ", queries)
-        seq = rule.config.sequence
-        print("seq: ", seq)
-       
-       
-        # x = ""
-        
-        for i in range (len(queries)):
-            # print("test: ",queries[i].event_category)
-            
-            b = "sequence\n "
-            # print("test: ",)
-            
-            
-        #     c = (f"[{queries[i].event_category} where {queries[i].condition}] ")
-        #     x = x + c
-
-        # z = b + x 
-        # print(z)
-
-            
-            
-            # if query.sequence == False:
-            #     a += str(f"{queries[i].event_category} where {queries[i].condition} ")
-
-            # elif query.sequence:
-            #     # for i in range(len(queries)):
-            #     a += str(f"sequence\\n [{queries[0].event_category} where {queries[0].condition}] ")
-            #     # a += 'sequence [%s where aaa] '%query.event_category[1]
-            #     print(a)
-
-
-            # print(a)
-        return response.HttpResponse("hello")            
-
-
-    except:
-        return response.HttpResponse("ERROR")
-        
-    # return response.HttpResponse(queries) 
-    # return response.HttpResponse(query)
     
 
 
 
 
-# def query_total_detail(request, pk):
-#     try:
 
-#         rule = Rule.objects.get(pk=pk)
-#         q = rule.queries.all()
 
-#     except:
-#         return response.HttpResponse("does not exist")    
-    
-#     return response.HttpResponse(q)
 
-# def get_rule_id(request, pk):
-#     rule = Rule.objects.get(pk=pk)
-#     queries = rule.queries.all()
-#     config = rule.config.all()
-#     for query in queries:
-#         if query.sequence == False:
-#             print(f"{query.event_category} where {query.condition}")
-        
-#         elif query.sequence:
-#             print(f"sequence\\n [{query.event_category} where {query.condition}] ")
 
-#     return response.HttpResponse(queries)
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Create your views here.
 # ############################################################
 # class RuleList(generics.ListCreateAPIView):
 #     queryset = Rule.objects.all()
 #     serializer_class = RuleSerializer
 #     pass
-
 
 # class RuleViewSets(viewsets.ModelViewSet):
 #     """

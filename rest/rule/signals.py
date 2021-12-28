@@ -25,31 +25,74 @@
 from django.db.models.query_utils import Q
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
-from .models import Rule, Strategy, Query
+from .models import Rule, Strategy, Query, Order
 import yaml
 from django.db.models.signals import m2m_changed
 import random
 import json
 import requests
-##we say who is send signals to this function(create_rule)... @receiver myani daryaft konandeye in signal function create_rule ast
-@receiver(post_save, sender=Rule)
+
+#we say who is send signals to this function(create_rule)... @receiver myani daryaft konandeye in signal function create_rule ast
+@receiver(post_save, sender=Query)
 def create_yaml(sender, instance, created, **kwargs):
     """
     after creating an object in rule, we want to create a yaml file 
     """
-    if created:
+    # if created:
+    #     dict_file = """[{'ANPdata' : ['creation_date = %s', 'maturity = production', 'updated_date = %s']},
+    #                     {'ANPrule' : [{'author': ["Elastic"]}, {'language': "eql"}, {'rule_id': "55"}, {'threat': 'ghgf'}]},
+    #                     {'name': \" %s \"},
+    #                     {'index': "%s"},
+    #                     {'type': "any"},
+    #                     {'query': [{'query': %s}]}]"""%(instance.create_time, instance.modified_time, instance.name, instance.index_name, instance.total_method)
+    
+    #     dict_file = yaml.safe_load(dict_file)          
+    #     with open(f'D:\\Downloads\\VSCode\\elastalert\\rest\\Aras_rule_{instance.name}.yaml', 'w') as file:
+    #         yaml.dump(dict_file, file)
+    instance.rule.total = instance.rule.total_method
+    
+    @receiver(post_save, sender=Rule)
+    def c2(sender, instance, created, **kwargs):
+        
+        # print(instance.name)
+        # print(instance.create_time)
+        # print(instance.modified_time)
+        # print(instance.index_name)
+        # print(instance.total)
+        
         dict_file = """[{'ANPdata' : ['creation_date = %s', 'maturity = production', 'updated_date = %s']},
                         {'ANPrule' : [{'author': ["Elastic"]}, {'language': "eql"}, {'rule_id': "55"}, {'threat': 'ghgf'}]},
                         {'name': \" %s \"},
                         {'index': "%s"},
                         {'type': "any"},
-                        {'query': [{'query': %s}]}]"""%(instance.create_time, instance.modified_time, instance.name, instance.index_name, instance.total_method()[1])
-                
+                        {'eql' : {'query': "%s"}}]"""%(instance.create_time, instance.modified_time, instance.name, instance.index_name, instance.total)
+        
         dict_file = yaml.safe_load(dict_file)          
-        with open(f'{instance.name}.yaml', 'w') as file:
-            yaml.dump(dict_file, file)
+        with open(f'D:\\Downloads\\VSCode\\elastalert\\rest\\Aras_rule_{instance.name}.yaml', 'w') as file:
+            yaml.dump(dict_file, file)           
+        
+# @receiver(post_save, sender=Strategy)
+# def create_yaml_strategy(sender, instance, created, **kwargs):
+#     """
+#     after creating an object in strategy, we want to create a yaml file 
+#     """
+#     if created:
+#         print("created",created)
+#         dict_file = """[{'ANPdata' : ['creation_date = %s', 'maturity = production', 'updated_date = %s']},
+#                         {'ANPrule' : [{'author': ["Elastic"]}, {'language': "eql"}, {'rule_id': "55"}, {'threat': 'ghgf'}]},
+#                         {'name': \" %s \"},
+#                         {'index': "%s"},
+#                         {'type': "any"},
+#                         {'query': [{'query': %s}]}]"""%(instance.create_time, instance.modified_time, instance.strategy_name, instance.strategy_alias, instance.strategy_total)
+                
+#         dict_file = yaml.safe_load(dict_file)          
+#         with open(f'{instance.strategy_name}.yaml', 'w') as file:
+#             yaml.dump(dict_file, file)
+#     else:
+#         Strategy.objects.update()
+        # Strategy.objects.filter(pk=b.id).update()
 
-       
+
 # @receiver(post_save, sender=Query)
 # def fill_total(sender, instance, created, **kwargs):
 #     """
@@ -145,22 +188,6 @@ def create_yaml(sender, instance, created, **kwargs):
 #     else:
 #         pass
     
-# @receiver(post_save, sender=Order)
-# def create_yaml(sender, instance, created, **kwargs):
-#     """
-#     after creating an object in strategy, we want to create a yaml file 
-#     """
-#     if created:
-#         dict_file = """[{'ANPdata' : ['creation_date = %s', 'maturity = production', 'updated_date = %s']},
-#                         {'ANPrule' : [{'author': ["Elastic"]}, {'language': "eql"}, {'rule_id': "55"}, {'threat': 'ghgf'}]},
-#                         {'name': \" %s \"},
-#                         {'index': "%s"},
-#                         {'type': "any"},
-#                         {'query': [{'query': %s}]}]"""%(instance.create_time, instance.modified_time, instance.name, instance.index_name, instance.total_method())
-                
-#         dict_file = yaml.safe_load(dict_file)          
-#         with open(f'{instance.name}.yaml', 'w') as file:
-#             yaml.dump(dict_file, file)
-
+# 
         
  

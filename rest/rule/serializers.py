@@ -1,7 +1,6 @@
 from django.db.models import fields
 from rest_framework import serializers
 from .models import Rule, Query, Config, Strategy, Order
-from rest_framework.serializers import HyperlinkedIdentityField
 # # , User
 # from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model

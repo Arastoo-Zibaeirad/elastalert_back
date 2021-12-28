@@ -2,8 +2,9 @@
 from django.urls import path, include
 # from .views import RuleDetail, RuleList, query_total, test, UserList, UserDetail
 
-from .views import UserViewSet, RuleViewSet, QueryViewSet, ConfigViewSet, StrategyViewSet, OrderViewSet
+from .views import UserViewSet, RuleViewSet, QueryViewSet, ConfigViewSet, StrategyViewSet, OrderViewSet, create_rule_file
 from rest_framework import routers
+
 app_name = "rule"
 
 router = routers.SimpleRouter()
@@ -17,7 +18,10 @@ router.register('order', OrderViewSet)
 
 #or
 urlpatterns = [
-    path("", include(router.urls))
+    path("", include(router.urls)),
+    # path("create_rule_file/", include(router.urls)),
+    path("create_rule_file/", create_rule_file),
+    
 ]
 
 # urlpatterns = [

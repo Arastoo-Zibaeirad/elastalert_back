@@ -7,6 +7,7 @@ import yaml
 from django.core.files.base import ContentFile, File
 import time
 from elasticsearch import Elasticsearch
+
 # from django.db.models.signals import post_save
 
 # class StrategyManager(models.Manager):
@@ -95,7 +96,6 @@ class Rule(models.Model):
     index_name = models.TextField(blank=True, null=True)
     create_time = models.DateTimeField(auto_now_add=True)
     modified_time = models.DateTimeField(auto_now=True)
-    # rule_file = models.FileField(blank=True, upload_to='')
     CREATE_RULE = 'create_rule'
     STRATEGY = 'strategy'
     flag_fields = (
@@ -104,41 +104,9 @@ class Rule(models.Model):
     )
     flag = models.CharField(max_length=250, blank=True, null=True, choices=flag_fields, default=CREATE_RULE)
     total = models.TextField(blank=True, null=True)
-    # DisplayFields = ['id', 'name', 'index_name', 'sequence' ,'flag','create_time', 'modified_time','total', 'total_property']
-
     # objects = CustomRuleManager()
     # default_manager = CustomRuleManager()
 
-    # def save(self, *args, **kwargs):
-        # x=""
-        # queries = self.queries.all()
-        # if self.sequence == 'has no conf':
-        #     return "has no conf"
-        # else:
-        #     if self.sequence == False:
-        #         z = (f"{queries.event_category} where {queries.condition}")
-        #     elif self.sequence == True:
-        #         for i in range (len(queries)):
-        #             print(i)
-        #             c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n  ")
-        #             x +=  c
-        #         z = "sequence\\n " + x
-        #     self.total = queries
-            
-          # super().save(*args, **kwargs)   
-            
-            
-        # if self.flag == 'create_rule':
-        #     if self.sequence == False:
-        #         z = (f"{queries.event_category} where {queries.condition}")
-        #         self.total = z
-        #     elif self.sequence == True:
-        #         for i in range (len(queries)):
-        #             c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n  ")
-        #             x +=  c
-        #         z = "sequence\\n " + x
-        #         self.total = z
-        
     @property
     def index_alias(self):
         indices_name = self.index_name.split(", ")
@@ -169,29 +137,37 @@ class Rule(models.Model):
             except:
                 print("ERROR")
         return indices_name
-
+   
+    @property
     def total_method(self):
-        
         queries = self.queries.all()
-        if self.sequence == 'has no conf':
-            return "has no conf"
+        # if self.sequence == 'has no conf':
+        #     return "has no conf"
+        # else:
+        if self.sequence == False:
+            z = (f"{queries.event_category} where {queries.condition}")
         else:
-            if self.sequence == False:
-                z = (f"{queries.event_category} where {queries.condition}")
-            elif self.sequence == True:
-                x=""
-                for i in range (len(queries)):
-                    # b = "sequence\\n "
-                    c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n ")
-                    x += c
-                
-                z = "sequence\\n " + x 
-        self.total = z
-        self.save()
-        return x, z
-    
-
+            x=f""
+            z = ""
+            for i in range (len(queries)):
+                c = f"[{queries[i].event_category} where {queries[i].condition}]\\n "
+                x += c
             
+            z = "sequence\\n " + str(x)
+        self.total = z
+        self.save(update_fields=["total"]) 
+
+        return z
+    
+    # def save(self, *args, **kwargs):
+        
+    #     super(Rule, self).save(*args, **kwargs)
+    #     self.total = self.total_method
+    #     rule = Rule.objects.all()
+        # rule.save(update_fields=["total"]) 
+        
+
+        
     @property
     def sequence(self):
         try:
@@ -210,7 +186,6 @@ class Rule(models.Model):
 
     def __str__(self):
         return f"{self.name}"
-
 
 class Query(models.Model):
     rule = models.ForeignKey(Rule, on_delete=models.CASCADE, related_name='queries')
@@ -261,6 +236,10 @@ class Query(models.Model):
     # default_manager = QueryManager()
     # objects = QueryManager()
 
+    # def save(self, *args, **kwargs):
+    #     super(Query, self).save(*args, **kwargs)
+    #     self.rule.total = self.rule.total_method
+
     class Meta:
         verbose_name = 'Query'
         verbose_name_plural = 'Queries'
@@ -295,21 +274,7 @@ class Strategy(models.Model):
     
     def __str__(self):
         return f"{self.strategy_name}"
-    "**************************************************************"
-    # def total_method_strategy(self):
-    #     rules = self.rules.all()
-    #     if len(rules) != 0:
-    #         y = ""
-    #         for rule in rules:
-    #             queries = rule.queries.all()   
-    #             x = ""
-    #             for i in range (len(queries)):
-    #                 c = (f"[{queries[i].event_category} where {queries[i].condition}]\\n ")
-    #                 x +=  c
-    #             y += x
-    #         z = "sequence\\n " + y
-        # return (z,y)
-        
+
     def final_query(self):
         strategies = self.stra.all()
         rules = self.rules.all()
@@ -348,7 +313,7 @@ class Strategy(models.Model):
                     for rule_of_each_strategy in get_each_strategy.rules.all():
                         i_name = rule_of_each_strategy.index_name
                         strategy_indx_name_list.append(i_name)
-        print("strategy_indx_name_list: ", strategy_indx_name_list)
+        # print("strategy_indx_name_list: ", strategy_indx_name_list)
         """the indices list has unique items"""
         indices = []
         for x in strategy_indx_name_list:
@@ -359,7 +324,6 @@ class Strategy(models.Model):
         for i in indices:
             collect_index_name += i
         es = Elasticsearch(['192.168.250.123'],)
-        
         if len(indices) >= 1:
             url = 'http://192.168.250.123:9200/_aliases?pretty'
             headers = {
@@ -367,25 +331,51 @@ class Strategy(models.Model):
             }
             alias_name = f"Strategy_alias({collect_index_name})"
             data = '{"actions" : [ { "add" : { "indices" : %s, "alias" : "%s" } } ]}'%(json.dumps(indices), alias_name)
-
             try:
                 alias = es.indices.get_alias(f"{alias_name}")
                 alias = "Exist"
-                
             except:
                 alias = "Not Exist"
-                
             if alias == "Exist":
                 indices = alias_name
             else:
-                res1 = requests.post(url, headers=headers, data=data)
-                res = res1.json()
-                indices = alias_name
-                
+                try:
+                    """
+                    This is for handling errors. we send a request to Elasticsearch to get the list of all indices and if one of the indices does not in 
+                    in the list, then alias should not be created.
+                    """
+                    get_index_from_elastic = []
+                    k = 0
+                    for index in es.indices.get('*'):
+                        get_index_from_elastic.append(index)
+                    for ii in indices:
+                        if ii not in get_index_from_elastic: 
+                            k += 1
+                    print(k)
+                    if k == 0:
+                        res1 = requests.post(url, headers=headers, data=data)
+                        res = res1.json()
+                        indices = alias_name
+                        print("Response: ", res)
+
+                    else:                        
+                        self.final_query = "error"
+                        raise "error"
+                        
+                except:
+                    print("ERROR stratey alias")
+                    return None
+      
             self.strategy_alias = indices
             self.save()
             return indices
-
+        
+    # def save(self, *args, **kwargs):
+    #     if self.strategy_index() == "error":
+    #         Strategy.objects.all() == None
+            
+    #     return super(Strategy, self).save(*args, **kwargs)   
+    
 class Order(models.Model):
     strategy = models.ForeignKey(Strategy, on_delete=models.CASCADE, related_name='stra')
     order = models.AutoField(primary_key=True)
